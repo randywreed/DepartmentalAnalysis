@@ -34,7 +34,7 @@ sumclassdata <- relclasses %>%
 selclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
   
   #isolate course, filters out anything not between yearin and yearout
-  if Sem <> "all" {
+  if (Sem == "all") {
     newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout)
   } else {
   newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout, Semester==Sem)
