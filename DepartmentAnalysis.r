@@ -25,7 +25,14 @@ relclassdata %>% ggvis(~factor(COURSE), ~ACTUAL)
 #total classes by year by semester
 sumclassdata <- relclasses %>% 
   select(COURSE, Year, Semester, TITLE_SHORT_DESC, ACTUAL) %>%
-  group_by(Year, Semester, COURSE) %>%
-  summarize(sum(ACTUAL)) %>%
+  group_by(COURSE, Year, Semester) %>%
+  summarize(totalstd = sum(ACTUAL)) %>%
   arrange(COURSE)
 
+#isolate just world religions
+worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
+#create time series from total students field
+worldrelts=ts(worldrel$totalstd, start = 2009, end=2014, frequency=2)
+plot(worldrelts)
+forcast(worldrelts)
+plot(forecast(worldrelts))
