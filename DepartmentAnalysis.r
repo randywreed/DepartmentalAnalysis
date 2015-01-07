@@ -36,13 +36,18 @@ selclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
   #isolate course, filters out anything not between yearin and yearout
   if (Sem == "all") {
     newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout)
-  } else {
+    #create time series from total students, fillyin is the beginning year, fillyout is endin year
+    # frequency set to twice yearly (semester)
+    newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=2)
+    
+    } else {
   newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout, Semester==Sem)
-  }
   #create time series from total students, fillyin is the beginning year, fillyout is endin year
   # frequency set to twice yearly (semester)
-  newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=2)
-  return(newts)
+  newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=1)
+  
+    }
+   return(newts)
 }
 #isolate just world religions
 #worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
@@ -66,3 +71,14 @@ ntrelts<-selclasses (2020, 2008, 2015, 2009, 2014, "all")
 plot(ntrelts)
 forecast(ntrelts)
 plot(forecast(ntrelts))
+
+ntfallts<-selclasses(2020, 2008, 2015, 2009, 2014, "Fall")
+plot(ntfallts)
+forecast(ntfallts)
+plot(forecast(ntfallts))
+
+ntspringts<-selclasses(2020,2008,2015,2009,2014,"Spring")
+plot(ntspringts)
+forecast(ntspringts)
+plot(forecast(ntspringts))
+
