@@ -29,10 +29,40 @@ sumclassdata <- relclasses %>%
   summarize(totalstd = sum(ACTUAL)) %>%
   arrange(COURSE)
 
+#function to create time series object for classes, set Sem=all
+
+selclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
+  
+  #isolate course, filters out anything not between yearin and yearout
+  if Sem <> "all" {
+    newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout)
+  } else {
+  newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout, Semester==Sem)
+  }
+  #create time series from total students, fillyin is the beginning year, fillyout is endin year
+  # frequency set to twice yearly (semester)
+  newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=2)
+  return(newts)
+}
 #isolate just world religions
-worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
+#worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
 #create time series from total students field
-worldrelts=ts(worldrel$totalstd, start = 2009, end=2014, frequency=2)
+#worldrelts=ts(worldrel$totalstd, start = 2009, end=2014, frequency=2)
+
+#World religions all semesters
+worldrelts<-selclasses(1110, 2008, 2015, 2009, 2014, "all")
 plot(worldrelts)
-forcast(worldrelts)
+forecast(worldrelts)
 plot(forecast(worldrelts))
+
+#old testament all semesters
+otrelts<-selclasses (2010, 2008, 2015, 2009, 2014, "all")
+plot(otrelts)
+forecast(otrelts)
+plot(forecast(otrelts))
+
+#new testament all semesters
+ntrelts<-selclasses (2020, 2008, 2015, 2009, 2014, "all")
+plot(ntrelts)
+forecast(ntrelts)
+plot(forecast(ntrelts))
