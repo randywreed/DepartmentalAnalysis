@@ -7,7 +7,7 @@ library(ggvis)
 library(dplyr)
 library(tidyr)
 #read in csv
-classbyprof<- tbl_df(data = read.csv("classbyprof.csv"))
+classbyprof<- tbl_df(data = read.csv("enrollment_history_data.csv"))
 relclasses<- classbyprof %>% filter(SUB=="REL") %>%
   separate(TERM, into=c("Semester","Year"),"\\ ") %>%
   arrange(COURSE, Year, Semester) 
@@ -21,14 +21,21 @@ relclassdata <- relclasses %>%
 #plot course and total students
 #future: modify so that can adjust the actual number dynamically
 relclassdata %>% ggvis(~factor(COURSE), ~ACTUAL)
-relclassdata %>% plot(factor(COURSE), ACTUAL)
+#relclassdata %>% plot(factor(COURSE), ACTUAL)
 
-#total classes by year by semester
-sumclassdata <- relclasses %>% 
+#mean classes by year by semester
+meanclassdata <- relclasses %>% 
   select(COURSE, ACADEMIC_YEAR, Year, Semester, TITLE_SHORT_DESC, ACTUAL) %>%
   group_by(Year, Semester, COURSE) %>%
-  summarize(mean(ACTUAL)) %>%
+  summarize( avg_students=mean(ACTUAL)) %>%
   arrange(COURSE)
+
+yrmeanclassdata <- relclasses %>% 
+  select (COURSE, ACADEMIC_YEAR, TITLE_SHORT_DESC, ACTUAL) %>%
+  group_by(ACADEMIC_YEAR, COURSE) %>%
+  summarize(avg_students=mean(ACTUAL)) %>%
+  arrange(COURSE)
+
 
 #function to create time series object for classes, set Sem=all
 
@@ -50,6 +57,27 @@ selclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
     }
    return(newts)
 }
+
+#this function is the same as selclasses except it use the variable ACADEMIC_YEAR instead of year
+aselclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
+  
+  #isolate course, filters out anything not between yearin and yearout
+  if (Sem == "all") {
+    newrel<- sumclassdata %>% filter (COURSE==Crn, ACADEMIC_YEAR>yearin, ACADEMIC_YEAR<yearout)
+    #create time series from total students, fillyin is the beginning ACADEMIC_YEAR, fillyout is endin ACADEMIC_YEAR
+    # frequency set to twice ACADEMIC_YEARly (semester)
+    newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=2)
+    
+  } else {
+    newrel<- sumclassdata %>% filter (COURSE==Crn, ACADEMIC_YEAR>yearin, ACADEMIC_YEAR<yearout, Semester==Sem)
+    #create time series from total students, fillyin is the beginning ACADEMIC_YEAR, fillyout is endin ACADEMIC_YEAR
+    # frequency set to twice ACADEMIC_YEARly (semester)
+    newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=1)
+    
+  }
+  return(newts)
+}
+
 #isolate just world religions
 #worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
 #create time series from total students field
