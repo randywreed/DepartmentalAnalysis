@@ -21,11 +21,12 @@ relclassdata <- relclasses %>%
 #plot course and total students
 #future: modify so that can adjust the actual number dynamically
 relclassdata %>% ggvis(~factor(COURSE), ~ACTUAL)
+relclassdata %>% plot(factor(COURSE), ACTUAL)
 
 #total classes by year by semester
 sumclassdata <- relclasses %>% 
-  select(COURSE, Year, Semester, TITLE_SHORT_DESC, ACTUAL) %>%
+  select(COURSE, ACADEMIC_YEAR, Year, Semester, TITLE_SHORT_DESC, ACTUAL) %>%
   group_by(Year, Semester, COURSE) %>%
-  summarize(sum(ACTUAL)) %>%
+  summarize(mean(ACTUAL)) %>%
   arrange(COURSE)
 
