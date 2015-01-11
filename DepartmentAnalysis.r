@@ -39,40 +39,40 @@ yrmeanclassdata <- relclasses %>%
 
 #function to create time series object for classes, set Sem=all
 
-selclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
+selclasses <- function (classdata, Crn, yearin, yearout, fillyin, fillyout, Sem) {
   
   #isolate course, filters out anything not between yearin and yearout
   if (Sem == "all") {
-    newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout)
+    newrel<- classdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout)
     #create time series from total students, fillyin is the beginning year, fillyout is endin year
     # frequency set to twice yearly (semester)
-    newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=2)
+    newts<-ts(newrel[4], start=fillyin, end=fillyout, frequency=2)
     
     } else {
-  newrel<- sumclassdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout, Semester==Sem)
+  newrel<- classdata %>% filter (COURSE==Crn, Year>yearin, Year<yearout, Semester==Sem)
   #create time series from total students, fillyin is the beginning year, fillyout is endin year
   # frequency set to twice yearly (semester)
-  newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=1)
+  newts<-ts(newrel[4], start=fillyin, end=fillyout, frequency=1)
   
     }
    return(newts)
 }
 
 #this function is the same as selclasses except it use the variable ACADEMIC_YEAR instead of year
-aselclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
+aselclasses <- function (classdata, Crn, yearin, yearout, fillyin, fillyout, Sem) {
   
   #isolate course, filters out anything not between yearin and yearout
   if (Sem == "all") {
-    newrel<- sumclassdata %>% filter (COURSE==Crn, ACADEMIC_YEAR>yearin, ACADEMIC_YEAR<yearout)
+    newrel<- classdata %>% filter (COURSE==Crn, ACADEMIC_YEAR>yearin, ACADEMIC_YEAR<yearout)
     #create time series from total students, fillyin is the beginning ACADEMIC_YEAR, fillyout is endin ACADEMIC_YEAR
     # frequency set to twice ACADEMIC_YEARly (semester)
-    newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=2)
+    newts<-ts(newrel[4], start=fillyin, end=fillyout, frequency=2)
     
   } else {
-    newrel<- sumclassdata %>% filter (COURSE==Crn, ACADEMIC_YEAR>yearin, ACADEMIC_YEAR<yearout, Semester==Sem)
+    newrel<- classdata %>% filter (COURSE==Crn, ACADEMIC_YEAR>yearin, ACADEMIC_YEAR<yearout, Semester==Sem)
     #create time series from total students, fillyin is the beginning ACADEMIC_YEAR, fillyout is endin ACADEMIC_YEAR
     # frequency set to twice ACADEMIC_YEARly (semester)
-    newts<-ts(newrel$totalstd, start=fillyin, end=fillyout, frequency=1)
+    newts<-ts(newrel[4], start=fillyin, end=fillyout, frequency=1)
     
   }
   return(newts)
@@ -84,30 +84,32 @@ aselclasses <- function (Crn, yearin, yearout, fillyin, fillyout, Sem) {
 #worldrelts=ts(worldrel$totalstd, start = 2009, end=2014, frequency=2)
 
 #World religions all semesters
-worldrelts<-selclasses(1110, 2008, 2015, 2009, 2014, "all")
+worldrelts<-selclasses(meanclassdata, 1110, 2008, 2015, 2009, 2014, "all")
 plot(worldrelts)
 forecast(worldrelts)
 plot(forecast(worldrelts))
 
 #old testament all semesters
-otrelts<-selclasses (2010, 2008, 2015, 2009, 2014, "all")
+otrelts<-selclasses (meanclassdata, 2010, 2008, 2015, 2009, 2014, "all")
 plot(otrelts)
 forecast(otrelts)
 plot(forecast(otrelts))
 
 #new testament all semesters
-ntrelts<-selclasses (2020, 2008, 2015, 2009, 2014, "all")
+ntrelts<-selclasses (meanclassdata, 2020, 2008, 2015, 2009, 2014, "all")
 plot(ntrelts)
 forecast(ntrelts)
 plot(forecast(ntrelts))
+plot(rwf(ntrelts, h=3, drift=TRUE))
+plot(meanf(ntrelts,h=3))
 
-ntfallts<-selclasses(2020, 2008, 2015, 2009, 2014, "Fall")
+ntfallts<-selclasses(meanclassdata, 2020, 2008, 2015, 2009, 2014, "Fall")
 plot(ntfallts)
-forecast(ntfallts)
-plot(forecast(ntfallts))
+forecast(ntfallts, h=3)
+plot(forecast(ntfallts, h=3))
 
-ntspringts<-selclasses(2020,2008,2015,2009,2014,"Spring")
+ntspringts<-selclasses(meanclassdata, 2020,2008,2015,2009,2014,"Spring")
 plot(ntspringts)
-forecast(ntspringts)
-plot(forecast(ntspringts))
-
+forecast(ntspringts, h=3)
+plot(forecast(ntspringts, h=3))
+plot(rwf(ntspringts,h=3, drift=TRUE))
