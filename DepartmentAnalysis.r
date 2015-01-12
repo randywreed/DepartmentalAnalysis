@@ -1,11 +1,7 @@
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("ggvis")
-install.packages("forecast")
-library(forecast)
-library(ggvis)
-library(dplyr)
-library(tidyr)
+require("dplyr")
+require("forecast")
+require("ggvis")
+require("tidyr")
 #read in csv
 classbyprof<- tbl_df(data = read.csv("enrollment_history_data.csv"))
 relclasses<- classbyprof %>% filter(SUB=="REL") %>%
