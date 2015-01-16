@@ -1,5 +1,17 @@
-require("dplyr")
-require("forecast")
+load.fun <- function(x) { 
+  x <- as.character(substitute(x)) 
+  if(isTRUE(x %in% .packages(all.available=TRUE))) { 
+    eval(parse(text=paste("require(", x, ")", sep=""))) 
+  } else { 
+    #update.packages() # recommended before installing so that 
+    #dependencies are the latest version 
+    eval(parse(text=paste("install.packages('", x, "')", sep=""))) 
+  } 
+} 
+
+
+load.fun("dplyr")
+load.fun("forecast")
 require("ggvis")
 require("tidyr")
 #read in csv
