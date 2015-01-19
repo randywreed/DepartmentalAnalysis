@@ -12,8 +12,8 @@ load.fun <- function(x) {
 
 load.fun("dplyr")
 load.fun("forecast")
-require("ggvis")
-require("tidyr")
+load.fun("ggvis")
+load.fun("tidyr")
 #read in csv
 classbyprof<- tbl_df(data = read.csv("enrollment_history_data.csv"))
 relclasses<- classbyprof %>% filter(SUB=="REL") %>%
@@ -96,7 +96,7 @@ worldrelts<-selclasses(meanclassdata, 1110, 2008, 2015, 2009, 2014, "all")
 plot(worldrelts)
 forecast(worldrelts)
 plot(forecast(worldrelts))
-plot(hw(worldrelts, h=5))
+plot(hw(worldrelts, h=5), xlab="Year", ylab="Average class Size", sub = "World Religions")
 
 #old testament all semesters
 otrelts<-selclasses (meanclassdata, 2010, 2008, 2015, 2009, 2014, "all")
@@ -104,7 +104,7 @@ plot(otrelts)
 forecast(otrelts)
 plot(forecast(otrelts))
 accuracy(forecast(otrelts))
-plot(hw(otrelts, h=5))
+plot(hw(otrelts, h=5), xlab="Year", ylab="Average Class Size", sub="Old Testament")
 accuracy(hw(otrelts))
 
 #new testament all semesters
@@ -121,12 +121,15 @@ fit4<-ets(ntrelts)
 fit4f<-forecast(fit4)
 plot(fit4f)
 fit5<-hw(ntrelts, h=5)
-plot(fit5)
+plot(fit5, xlab="Year",ylab="Average Class Size",sub="New Testanment")
+fit6<-snaive(ntrelts, h=5)
+plot(fit6)
 accuracy(fit1)
 accuracy(fit2)
 accuracy(fit3)
 accuracy(fit4f)
 accuracy(fit5)
+accuracy(fit6)
 
 ntfallts<-selclasses(meanclassdata, 2020, 2008, 2015, 2009, 2014, "Fall")
 plot(ntfallts)
@@ -140,3 +143,4 @@ forecast(ntspringts, h=3)
 plot(forecast(ntspringts, h=3))
 plot(rwf(ntspringts,h=3, drift=TRUE))
 plot(holt(ntspringts, h=3))
+
