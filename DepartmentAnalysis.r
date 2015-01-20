@@ -8,13 +8,40 @@ load.fun <- function(x) {
     eval(parse(text=paste("install.packages('", x, "')", sep=""))) 
   } 
 } 
-
+#--Produces a data.frame with the Source Data+Training Data, Fitted Values+Forecast Values, forecast data Confidence Intervals
+funggcast<-function(dn,fcast){ 
+  require(zoo) #needed for the 'as.yearmon()' function
+  
+  en<-max(time(fcast$mean)) #extract the max date used in the forecast
+  
+  #Extract Source and Training Data
+  ds<-as.data.frame(window(dn,end=en))
+  names(ds)<-'observed'
+  ds$date<-as.Date(time(window(dn,end=en)))
+  
+  #Extract the Fitted Values (need to figure out how to grab confidence intervals)
+  dfit<-as.data.frame(fcast$fitted)
+  dfit$date<-as.Date(time(fcast$fitted))
+  names(dfit)[1]<-'fitted'
+  
+  ds<-merge(ds,dfit,all.x=T) #Merge fitted values with source and training data
+  
+  #Exract the Forecast values and confidence intervals
+  dfcastn<-as.data.frame(fcast)
+  dfcastn$date<-as.Date(as.yearmon(row.names(dfcastn)))
+  names(dfcastn)<-c('forecast','lo80','hi80','lo95','hi95','date')
+  
+  pd<-merge(ds,dfcastn,all.x=T) #final data.frame for use in ggplot
+  return(pd)
+  
+}
 
 load.fun("dplyr")
 load.fun("forecast")
 load.fun("ggvis")
 load.fun("tidyr")
-install.packages("xtsExtra", repos="http://R-Forge.R-project.org")
+load.fun("tseries")
+#install.packages("xtsExtra", repos="http://R-Forge.R-project.org")
 #read in csv
 classbyprof<- tbl_df(data = read.csv("enrollment_history_data.csv"))
 relclasses<- classbyprof %>% filter(SUB=="REL") %>%
@@ -86,7 +113,20 @@ aselclasses <- function (classdata, Crn, yearin, yearout, fillyin, fillyout, Sem
   }
   return(newts)
 }
-
+#computer seasonal differencing
+SeasonDiff <- function(x) {
+  ns<-nsdiffs(x)
+if(ns > 0) {
+  xstar <- diff(x,lag=frequency(x),differences=ns)
+} else {
+  xstar <- x
+}
+nd <- ndiffs(xstar)
+if(nd > 0) {
+  xstar <- diff(xstar,differences=nd)
+}
+return(xstar)
+}
 #isolate just world religions
 #worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
 #create time series from total students field
@@ -95,9 +135,28 @@ aselclasses <- function (classdata, Crn, yearin, yearout, fillyin, fillyout, Sem
 #World religions all semesters
 worldrelts<-selclasses(meanclassdata, 1110, 2008, 2015, 2009, 2014, "all")
 plot(worldrelts)
-forecast(worldrelts)
-plot(forecast(worldrelts))
-plot(hw(worldrelts, h=5), xlab="Year", ylab="Average class Size", sub = "World Religions")
+wfit1<-forecast(worldrelts)
+plot(wfit1)
+wfit2<-hw(worldrelts, h=5)
+plot(wfit2, xlab="Year", ylab="Average class Size", sub = "World Religions")
+pd<-funggcast(worldrelts, wfit1)
+adf.test(worldrelts, alternative="stationary")
+out<-SeasonDiff(worldrelts)
+plot(out)
+#bad model
+#wfit3<-Arima(worldrelts, seasonal=c(0,0,0))
+#wfit3
+wfit4<-Arima(worldrelts, seasonal=c(0,1,1))
+wfit4
+res<-residuals(wfit4)
+tsdisplay(res)
+Box.test(res,lag=16, fitdf=2, type="Ljung")
+plot(forecast(wfit4, h=8))
+auto.arima(worldrelts)
+
+wfit5<-Arima(worldrelts, seasonal=c(1,1,0))
+wfit5
+plot(forecast(wfit5, h=8))
 
 #old testament all semesters
 otrelts<-selclasses (meanclassdata, 2010, 2008, 2015, 2009, 2014, "all")
@@ -105,8 +164,18 @@ plot(otrelts)
 forecast(otrelts)
 plot(forecast(otrelts))
 accuracy(forecast(otrelts))
-plot(hw(otrelts, h=5), xlab="Year", ylab="Average Class Size", sub="Old Testament")
-accuracy(hw(otrelts))
+ofit0<-hw(otrelts,h=8)
+ofit0
+plot(ofit0, xlab="Year", ylab="Average Class Size", sub="Old Testament")
+accuracy(ofit0)
+auto.arima(otrelts)
+ofit1<-Arima(otrelts, order=c(0,0,0) )
+plot(forecast(ofit1, h=8))
+ofit2<-Arima(otrelts, seasonal=c(1,1,0))
+ofit2
+plot(forecast(ofit2, h=8))
+accuracy(ofit2)
+
 
 #new testament all semesters
 ntrelts<-selclasses (meanclassdata, 2020, 2008, 2015, 2009, 2014, "all")
@@ -125,14 +194,14 @@ fit5<-hw(ntrelts, h=8)
 fit5
 plot(fit5, xlab="Year",ylab="Average Class Size",sub="New Testanment")
 fit6<-snaive(ntrelts, h=5)
-plot(fit6)
+plot(fit6, xlab="Year", ylab="Average Class Size", sub="New Testament")
 accuracy(fit1)
 accuracy(fit2)
 accuracy(fit3)
 accuracy(fit4f)
 accuracy(fit5)
 accuracy(fit6)
-plot.xts(merge(fit1,fit2),screens=c(1,2))
+
 
 ntfallts<-selclasses(meanclassdata, 2020, 2008, 2015, 2009, 2014, "Fall")
 plot(ntfallts)
