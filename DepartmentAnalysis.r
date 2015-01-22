@@ -135,9 +135,9 @@ return(xstar)
 #World religions all semesters
 worldrelts<-selclasses(meanclassdata, 1110, 2008, 2015, 2009, 2014, "all")
 plot(worldrelts)
-wfit1<-forecast(worldrelts)
+wfit1<-forecast(worldrelts, h=8)
 plot(wfit1)
-wfit2<-hw(worldrelts, h=5)
+wfit2<-hw(worldrelts, h=8)
 plot(wfit2, xlab="Year", ylab="Average class Size", sub = "World Religions")
 pd<-funggcast(worldrelts, wfit1)
 adf.test(worldrelts, alternative="stationary")
@@ -157,7 +157,12 @@ auto.arima(worldrelts)
 wfit5<-Arima(worldrelts, seasonal=c(1,1,0))
 wfit5
 plot(forecast(wfit5, h=8))
-
+plot.ts(worldrelts)
+plot(wfit1)
+par(new=T)
+plot(wfit2)
+par(new=T)
+plot(forecast(wfit4,h=8))
 #old testament all semesters
 otrelts<-selclasses (meanclassdata, 2010, 2008, 2015, 2009, 2014, "all")
 plot(otrelts)
@@ -175,6 +180,7 @@ ofit2<-Arima(otrelts, seasonal=c(1,1,0))
 ofit2
 plot(forecast(ofit2, h=8))
 accuracy(ofit2)
+
 
 
 #new testament all semesters
