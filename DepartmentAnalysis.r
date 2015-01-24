@@ -127,6 +127,29 @@ if(nd > 0) {
 }
 return(xstar)
 }
+
+plotForecastErrors <- function(forecasterrors)
+{
+  # make a histogram of the forecast errors:
+  mybinsize <- IQR(forecasterrors)/4
+  mysd   <- sd(forecasterrors)
+  mymin  <- min(forecasterrors) - mysd*5
+  mymax  <- max(forecasterrors) + mysd*3
+  # generate normally distributed data with mean 0 and standard deviation mysd
+  mynorm <- rnorm(10000, mean=0, sd=mysd)
+  mymin2 <- min(mynorm)
+  mymax2 <- max(mynorm)
+  if (mymin2 < mymin) { mymin <- mymin2 }
+  if (mymax2 > mymax) { mymax <- mymax2 }
+  # make a red histogram of the forecast errors, with the normally distributed data overlaid:
+  mybins <- seq(mymin, mymax, mybinsize)
+  hist(forecasterrors, col="red", freq=FALSE, breaks=mybins)
+  # freq=FALSE ensures the area under the histogram = 1
+  # generate normally distributed data with mean 0 and standard deviation mysd
+  myhist <- hist(mynorm, plot=FALSE, breaks=mybins)
+  # plot the normal curve as a blue line on top of the histogram of forecast errors:
+  points(myhist$mids, myhist$density, type="l", col="blue", lwd=2)
+}
 #isolate just world religions
 #worldrel <- sumclassdata %>% filter(COURSE==1110 , Year>2008 , Year < 2015) 
 #create time series from total students field
@@ -163,6 +186,22 @@ par(new=T)
 plot(wfit2)
 par(new=T)
 plot(forecast(wfit4,h=8))
+worldcomponents<-decompose(worldrelts)
+plot(worldcomponents)
+plotForecastErrors(wfit2$residuals)
+plotForecastErrors(wfit1$residuals)
+plotForecastErrors(wfit4$residuals)
+acf(wfit2$residuals)
+acf(wfit1$residuals)
+acf(wfit4$residuals)
+Box.test(wfit1$residuals, type="Ljung-Box")
+Box.test(wfit2$residuals, type="Ljung-Box")
+Box.test(wfit4$residuals, type="Ljung-Box")
+plot.ts(wfit2$residuals)
+plot.ts(wfit1$residuals)
+plot.ts(wfit4$residuals)
+
+
 #old testament all semesters
 otrelts<-selclasses (meanclassdata, 2010, 2008, 2015, 2009, 2014, "all")
 plot(otrelts)
